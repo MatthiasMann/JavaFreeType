@@ -105,10 +105,11 @@ public class FreeTypeFont implements Closeable {
 
     public int getDescent() throws IOException {
         ensureOpen();
+        // match AWT sign
         if(face.isScalable()) {
-            return round26_6(face.size.metrics.descender);
+            return -round26_6(face.size.metrics.descender);
         } else {
-            return face.descender;
+            return -face.descender;
         }
     }
 
@@ -119,16 +120,27 @@ public class FreeTypeFont implements Closeable {
 
     public int getMaxDescent() throws IOException {
         ensureOpen();
-        return roundMaybeScaleY(face.bbox.yMin);
+        return -roundMaybeScaleY(face.bbox.yMin);
     }
 
-    public int getLeading() throws IOException {
+    public int getLineHeight() throws IOException {
         ensureOpen();
         if(face.isScalable()) {
             return round26_6(face.size.metrics.height);
         } else {
             return face.height;
         }
+    }
+
+    public int getLeading() throws IOException {
+        ensureOpen();
+        int height;
+        if(face.isScalable()) {
+            height = round26_6(face.size.metrics.height);
+        } else {
+            height = face.height;
+        }
+        return height - roundMaybeScaleY(face.bbox.yMax) + roundMaybeScaleY(face.bbox.yMin);
     }
 
     public int getUnderlinePosition() throws IOException {
