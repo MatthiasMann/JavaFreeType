@@ -114,12 +114,12 @@ public class FreeTypeFont implements Closeable {
 
     public int getMaxAscent() throws IOException {
         ensureOpen();
-        return round26_6(face.bbox.yMax);
+        return roundMaybeScaleY(face.bbox.yMax);
     }
 
     public int getMaxDescent() throws IOException {
         ensureOpen();
-        return round26_6(face.bbox.yMin);
+        return roundMaybeScaleY(face.bbox.yMin);
     }
 
     public int getLeading() throws IOException {
@@ -133,12 +133,12 @@ public class FreeTypeFont implements Closeable {
 
     public int getUnderlinePosition() throws IOException {
         ensureOpen();
-        return face.underline_position;
+        return roundMaybeScaleY(face.underline_position);
     }
 
     public int getUnderlineThickness() throws IOException {
         ensureOpen();
-        return face.underline_thickness;
+        return roundMaybeScaleY(face.underline_thickness);
     }
 
     public static boolean isAvailable() {
@@ -259,6 +259,17 @@ public class FreeTypeFont implements Closeable {
     private FreeTypeGlyphInfo makeGlyphInfo() {
         face.glyph.read();
         return new FreeTypeGlyphInfo(face.glyph);
+    }
+
+    private int roundMaybeScaleY(NativeLong value) {
+        return roundMaybeScaleY(value.longValue());
+    }
+    
+    private int roundMaybeScaleY(long value) {
+        if(face.isScalable()) {
+            value = FT_FixMul(value, face.size.metrics.y_scale.longValue());
+        }
+        return round26_6(value);
     }
     
     final void ensureOpen() throws IOException {

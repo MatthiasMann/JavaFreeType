@@ -115,6 +115,16 @@ class FT2Helper {
             return (int)((value + 32) >> 6);
         }
     }
+
+    static long FT_FixMul(long a, long b) {
+        long tmp = a * b;
+        if(tmp < 0) {
+            tmp -= 0x8000;
+        } else {
+            tmp += 0x8000;
+        }
+        return tmp >> 16;
+    }
     
     static boolean copyGlyphToBufferedImageGray(FT_Bitmap bitmap, BufferedImage img, int x, int y) {
         if(x + bitmap.width > img.getWidth()) {
