@@ -38,6 +38,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import com.sun.jna.Native;
 import com.sun.jna.NativeLong;
+import com.sun.jna.Platform;
 import com.sun.jna.Pointer;
 import com.sun.jna.ptr.PointerByReference;
 import java.awt.image.BufferedImage;
@@ -60,7 +61,13 @@ class FT2Helper {
     static synchronized boolean isAvailable() {
         if(isAvailable == null) {
             try {
-                INSTANCE = (FT2Library)Native.loadLibrary("freetype6", FT2Library.class);
+                String libName;
+                if(Platform.isWindows()) {
+                    libName = "freetype6";
+                } else {
+                    libName = "freetype";
+                }
+                INSTANCE = (FT2Library)Native.loadLibrary(libName, FT2Library.class);
                 isAvailable = Boolean.TRUE;
             } catch (Throwable ex) {
                 isAvailable = Boolean.FALSE;
