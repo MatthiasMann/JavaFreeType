@@ -150,6 +150,11 @@ public class FreeTypeFont implements Closeable {
         return new FreeTypeCodePointIterator(this);
     }
 
+    public int getGlyphForCodePoint(int codepoint) throws IOException {
+        ensureOpen();
+        return INSTANCE.FT_Get_Char_Index(face.getPointer(), new NativeLong(codepoint));
+    }
+
     public boolean hasKerning() throws IOException {
         ensureOpen();
         return face.hasKerning();
@@ -203,6 +208,27 @@ public class FreeTypeFont implements Closeable {
             return false;
         }
         return FT2Helper.copyGlyphToByteBuffer(bitmap, dst, stride);
+    }
+
+    public boolean copyGlyphToByteBufferColor(ByteBuffer dst, int stride, byte[] bgColor, byte[] fgColor) throws IOException {
+        ensureGlyphLoaded();
+
+        if(bgColor.length != fgColor.length) {
+            throw new IllegalArgumentException("color arrays must have same length");
+        }
+        
+        short[] colors = new short[bgColor.length * 2];
+        for(int i=0 ; i<bgColor.length ; i++) {
+            int bg = bgColor[i] & 255;
+            colors[i*2+0] = (short)bg;
+            colors[i*2+1] = (short)((fgColor[i] & 255) - bg);
+        }
+
+        FT_Bitmap bitmap = face.glyph.bitmap;
+        if(bitmap.buffer == null) {
+            return false;
+        }
+        return FT2Helper.copyGlyphToByteBuffer(bitmap, dst, stride, colors);
     }
 
     public static FreeTypeFont create(ByteBuffer font) throws IOException {

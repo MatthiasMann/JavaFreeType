@@ -182,6 +182,29 @@ class FT2Helper {
         return true;
     }
 
+    static boolean copyGlyphToByteBuffer(FT_Bitmap bitmap, ByteBuffer dst, int stride, short[] colors) {
+        ByteBuffer bb = bitmap.buffer.getByteBuffer(0, Math.abs(bitmap.pitch) * bitmap.rows);
+        int bbOff = (bitmap.pitch < 0) ? (-bitmap.pitch * (bitmap.rows-1)) : 0;
+        int dstRowOff = dst.position();
+        int width = bitmap.width;
+
+        for(int r=0 ; r<bitmap.rows ; r++,bbOff+=bitmap.pitch,dstRowOff+=stride) {
+            int dstOff = dstRowOff;
+            for(int c=0 ; c<width ; c++) {
+                int value = bb.get(bbOff + c) & 255;
+                if(value >= 0x80) {
+                    value++;
+                }
+                for(int i=0 ; i<colors.length ; i+=2,dstOff++) {
+                    dst.put(dstOff, (byte)(colors[i] + ((colors[i+1] * value) >> 8)));
+                }
+            }
+            dst.position(dstOff);
+        }
+        
+        return true;
+    }
+
     static ByteBuffer inputStreamToByteBuffer(InputStream is) throws IOException {
         final int PAGE_SIZE = 4096;
         final ArrayList<byte[]> pages = new ArrayList<byte[]>();
