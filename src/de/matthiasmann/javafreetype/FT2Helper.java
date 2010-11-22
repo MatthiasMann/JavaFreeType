@@ -57,12 +57,15 @@ class FT2Helper {
 
     private static Boolean isAvailable;
     static FT2Library INSTANCE;
+    static String nativeLibName;
 
     static synchronized boolean isAvailable() {
         if(isAvailable == null) {
             try {
                 String libName;
-                if(Platform.isWindows()) {
+                if(nativeLibName != null) {
+                    libName = nativeLibName;
+                } else if(Platform.isWindows()) {
                     libName = "freetype6";
                 } else {
                     libName = "freetype";

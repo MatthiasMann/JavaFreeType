@@ -153,6 +153,20 @@ public class FreeTypeFont implements Closeable {
         return roundMaybeScaleY(face.underline_thickness);
     }
 
+    /**
+     * Sets the name (for loadLibrary) to use when loading FreeType natives.
+     * Must be called before {@link #isAvailable() }
+     * 
+     * @param name the library name or null for default
+     */
+    public static void setNativeLibraryName(String name) {
+        nativeLibName = name;
+    }
+
+    /**
+     * Checks if FreeType natives are available
+     * @return true if FreeType natives are available
+     */
     public static boolean isAvailable() {
         return FT2Helper.isAvailable();
     }
