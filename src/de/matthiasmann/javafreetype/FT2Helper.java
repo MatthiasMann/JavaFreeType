@@ -40,6 +40,7 @@ import com.sun.jna.Native;
 import com.sun.jna.NativeLong;
 import com.sun.jna.Platform;
 import com.sun.jna.Pointer;
+import com.sun.jna.ptr.IntByReference;
 import com.sun.jna.ptr.PointerByReference;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
@@ -71,10 +72,15 @@ class FT2Helper {
                     libName = "freetype";
                 }
                 INSTANCE = (FT2Library)Native.loadLibrary(libName, FT2Library.class);
-                isAvailable = Boolean.TRUE;
+                Pointer library = FT_Init_FreeType();
+                try {
+                    isAvailable = checkLibrary(library);
+                } finally {
+                    INSTANCE.FT_Done_FreeType(library);
+                }
             } catch (Throwable ex) {
                 isAvailable = Boolean.FALSE;
-                Logger.getLogger(FreeTypeFont.class.getName()).log(Level.SEVERE, "Can't load FreeType2 library", ex);
+                getLogger().log(Level.SEVERE, "Can't load FreeType2 library", ex);
             }
         }
 
@@ -90,6 +96,43 @@ class FT2Helper {
     static void checkReturnCode(int error) throws FreeTypeException {
         if(error != 0) {
             throw new FreeTypeException(error);
+        }
+    }
+
+    static String trueTypeEngineToString(int engine) {
+        switch(engine) {
+            case FT_TRUETYPE_ENGINE_TYPE_NONE:       return "NONE";
+            case FT_TRUETYPE_ENGINE_TYPE_UNPATENTED: return "UNPATENTED";
+            case FT_TRUETYPE_ENGINE_TYPE_PATENTED:   return "PATENTED";
+            default:                                 return "unknown: " + engine;
+        }
+    }
+
+    static boolean checkLibrary(Pointer library) {
+        IntByReference major = new IntByReference();
+        IntByReference minor = new IntByReference();
+        IntByReference patch = new IntByReference();
+        INSTANCE.FT_Library_Version(library, major, minor, patch);
+
+        int engine = -1;
+        if(major.getValue() > 2 || (major.getValue() == 2 && minor.getValue() >= 2)) {
+            // FT_Get_TrueType_Engine_Type requires FreeType 2.2.x
+            engine = INSTANCE.FT_Get_TrueType_Engine_Type(library);
+        }
+
+        getLogger().log(Level.INFO, "FreeType2 version: {0}.{1}.{2} TrueType engine: {3}",
+                new Object[]{ major.getValue(), minor.getValue(), patch.getValue(), trueTypeEngineToString(engine) });
+
+        final int MIN_MAJOR = 2;
+        final int MIN_MINOR = 3;
+
+        if(major.getValue() > MIN_MAJOR) {
+            return true;
+        } else if(major.getValue() == MIN_MAJOR && minor.getValue() >= MIN_MINOR) {
+            return true;
+        } else {
+            getLogger().log(Level.WARNING, "FreeType2 library too old");
+            return false;
         }
     }
 
@@ -252,5 +295,9 @@ class FT2Helper {
                 return fontBuffer;
             }
         }
+    }
+
+    static Logger getLogger() {
+        return Logger.getLogger(FreeTypeFont.class.getName());
     }
 }

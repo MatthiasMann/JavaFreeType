@@ -240,9 +240,16 @@ public interface FT2Library extends Library {
     public static final int FT_LOAD_RENDER  = 4;
     
     public static final int FT_GLYPH_FORMAT_BITMAP = FT2Helper.FT_IMAGE_TAG('b', 'i', 't', 's');
-    
+
+    public static final int FT_TRUETYPE_ENGINE_TYPE_NONE       = 0;
+    public static final int FT_TRUETYPE_ENGINE_TYPE_UNPATENTED = 1;
+    public static final int FT_TRUETYPE_ENGINE_TYPE_PATENTED   = 2;
+
     int FT_Init_FreeType(PointerByReference alibrary);
     int FT_Done_FreeType(Pointer library);
+
+    void FT_Library_Version(Pointer library, IntByReference amajor, IntByReference aminor, IntByReference apatch);
+    int FT_Get_TrueType_Engine_Type(Pointer library);
 
     int FT_New_Memory_Face(Pointer library, ByteBuffer file_base, NativeLong file_size, NativeLong face_index, PointerByReference aface);
     int FT_Done_Face(Pointer face);
