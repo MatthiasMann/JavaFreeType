@@ -267,6 +267,9 @@ public interface FT2Library extends Library {
     int FT_New_Memory_Face(Pointer library, ByteBuffer file_base, NativeLong file_size, NativeLong face_index, PointerByReference aface);
     int FT_Done_Face(Pointer face);
 
+    int FT_New_Size(Pointer face, FT_Size size);
+    int FT_Activate_Size(FT_Size size);
+    
     int FT_Set_Char_Size(Pointer face, int char_width, int char_height, int horz_resolution, int vert_resolution);
     int FT_Set_Pixel_Sizes(Pointer face, int pixel_width, int pixel_height);
     int FT_Load_Glyph(Pointer face, int glyph_index, int load_flags);

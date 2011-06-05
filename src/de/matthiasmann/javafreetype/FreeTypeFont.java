@@ -46,6 +46,11 @@ import static de.matthiasmann.javafreetype.FT2Library.*;
 import static de.matthiasmann.javafreetype.FT2Helper.*;
 
 /**
+ * Font loading using FreeType2
+ * 
+ * <p>
+ * NOTE: This class is <b>NOT</b> thread safe.
+ * </p>
  *
  * @author Matthias Mann
  */
@@ -60,11 +65,15 @@ public class FreeTypeFont implements Closeable {
     ByteBuffer fontBuffer;
     Pointer library;
     FT_Face face;
+    Size initialSize;
+    Size activeSize;
 
     private FreeTypeFont(Pointer library, ByteBuffer file) throws FreeTypeException {
         this.fontBuffer = file;
         this.library = library;
         this.face = FT_New_Memory_Face(library, file, 0);
+        this.initialSize = new Size(face.size);
+        this.activeSize = initialSize;
     }
 
     public void close() throws IOException {
@@ -79,6 +88,36 @@ public class FreeTypeFont implements Closeable {
     public String getStyleName() throws IOException {
         ensureOpen();
         return face.style_name;
+    }
+
+    public Size getActiveSize() throws IOException {
+        ensureOpen();
+        return activeSize;
+    }
+
+    public void setActiveSize(Size activeSize) throws IOException {
+        ensureOpen();
+        if(activeSize.getFTF() != this) {
+            throw new IllegalArgumentException("Size doesn't belong to this font");
+        }
+        checkReturnCode(INSTANCE.FT_Activate_Size(activeSize.size));
+        this.activeSize = activeSize;
+    }
+    
+    /**
+     * Allocates a new {@code Size} object to store a font size.
+     * The new {@code Size} is not yet activated.
+     * 
+     * @return
+     * @throws IOException 
+     * @see #setActiveSize(de.matthiasmann.javafreetype.FreeTypeFont.Size) 
+     * @see #getActiveSize() 
+     */
+    public Size createNewSize() throws IOException {
+        ensureOpen();
+        FT_Size size = new FT_Size();
+        checkReturnCode(INSTANCE.FT_New_Size(face.getPointer(), size));
+        return new Size(size);
     }
     
     public void setCharSize(float width, float height, int horizontalResolution, int verticalResolution) throws IOException {
@@ -288,6 +327,16 @@ public class FreeTypeFont implements Closeable {
         return FT2Helper.copyGlyphToByteBuffer(bitmap, dst, stride, colors);
     }
 
+    /**
+     * Loads the TrueType font in the specified {@code ByteBuffer}.
+     * <p>
+     * NOTE: Do not modify the buffer until all {@code FreeTypeFont} instances are closed.
+     * </p>
+     * @param font the TrueType font to load
+     * @return the FreeTypeFont instance
+     * @throws IOException if the font could not be loaded, or if FreeType2 is not available
+     * @see #isAvailable() 
+     */
     public static FreeTypeFont create(ByteBuffer font) throws IOException {
         FT2Helper.checkAvailable();
         return new FreeTypeFont(FT_Init_FreeType(), font);
@@ -348,6 +397,8 @@ public class FreeTypeFont implements Closeable {
             library = null;
             face = null;
             fontBuffer = null;
+            initialSize = null;
+            activeSize = null;
             checkReturnCode(err);
         }
     }
@@ -357,6 +408,18 @@ public class FreeTypeFont implements Closeable {
     protected void finalize() throws Throwable {
         super.finalize();
         close0();
+    }
+    
+    public final class Size {
+        final FT_Size size;
+
+        Size(FT_Size size) {
+            this.size = size;
+        }
+        
+        FreeTypeFont getFTF() {
+            return FreeTypeFont.this;
+        }
     }
     
     public enum LoadTarget {
