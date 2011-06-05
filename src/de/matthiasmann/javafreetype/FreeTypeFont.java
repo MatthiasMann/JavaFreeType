@@ -199,15 +199,46 @@ public class FreeTypeFont implements Closeable {
         }
     }
 
+    /**
+     * Loads a glyph using FT_LOAD_RENDER and FT_LOAD_TARGET_NORMAL.
+     * 
+     * @param glyphIndex the glyph index for this font
+     * @return the glyph info
+     * @throws IOException if an error occured
+     * @see #getGlyphForCodePoint(int) 
+     */
     public FreeTypeGlyphInfo loadGlyph(int glyphIndex) throws IOException {
+        return loadGlyph(glyphIndex, FT_LOAD_RENDER);
+    }
+    
+    public FreeTypeGlyphInfo loadGlyph(int glyphIndex, LoadTarget target) throws IOException {
+        return loadGlyph(glyphIndex, FT_LOAD_RENDER | target.target);
+    }
+    
+    public FreeTypeGlyphInfo loadGlyph(int glyphIndex, int flags) throws IOException {
         ensureOpen();
-        checkReturnCode(INSTANCE.FT_Load_Glyph(face.getPointer(), glyphIndex, FT_LOAD_RENDER));
+        checkReturnCode(INSTANCE.FT_Load_Glyph(face.getPointer(), glyphIndex, flags));
         return makeGlyphInfo();
     }
 
+    /**
+     * Loads a glyph using FT_LOAD_RENDER and FT_LOAD_TARGET_NORMAL.
+     * 
+     * @param codepoint the unicode code point to load
+     * @return the glyph info
+     * @throws IOException if an error occured
+     */
     public FreeTypeGlyphInfo loadCodePoint(int codepoint) throws IOException {
+        return loadCodePoint(codepoint, FT_LOAD_RENDER);
+    }
+    
+    public FreeTypeGlyphInfo loadCodePoint(int codepoint, LoadTarget target) throws IOException {
+        return loadCodePoint(codepoint, FT_LOAD_RENDER | target.target);
+    }
+    
+    public FreeTypeGlyphInfo loadCodePoint(int codepoint, int flags) throws IOException {
         ensureOpen();
-        checkReturnCode(INSTANCE.FT_Load_Char(face.getPointer(), new NativeLong(codepoint), FT_LOAD_RENDER));
+        checkReturnCode(INSTANCE.FT_Load_Char(face.getPointer(), new NativeLong(codepoint), flags));
         return makeGlyphInfo();
     }
 
@@ -326,5 +357,18 @@ public class FreeTypeFont implements Closeable {
     protected void finalize() throws Throwable {
         super.finalize();
         close0();
+    }
+    
+    public enum LoadTarget {
+        NORMAL(FT2Library.FT_LOAD_TARGET_NORMAL),
+        LIGHT(FT2Library.FT_LOAD_TARGET_LIGHT),
+        MONO(FT2Library.FT_LOAD_TARGET_MONO),
+        LCD(FT2Library.FT_LOAD_TARGET_LCD),
+        LCD_V(FT2Library.FT_LOAD_TARGET_LCD_V);
+        
+        final int target;
+        private LoadTarget(int target) {
+            this.target = target;
+        }
     }
 }

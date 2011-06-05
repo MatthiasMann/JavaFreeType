@@ -234,10 +234,23 @@ public interface FT2Library extends Library {
     public static final int FT_FACE_FLAG_HINTER           = 1 << 11;
 
     public static final int FT_KERNING_DEFAULT = 0;
+    
     public static final int FT_RENDER_MODE_NORMAL = 0;
+    public static final int FT_RENDER_MODE_LIGHT  = 1;
+    public static final int FT_RENDER_MODE_MONO   = 2;
+    public static final int FT_RENDER_MODE_LCD    = 3;
+    public static final int FT_RENDER_MODE_LCD_V  = 4;
 
-    public static final int FT_LOAD_DEFAULT = 0;
-    public static final int FT_LOAD_RENDER  = 4;
+    public static final int FT_LOAD_DEFAULT        = 0;
+    public static final int FT_LOAD_NO_HINTING     = 1 << 1;
+    public static final int FT_LOAD_RENDER         = 1 << 2;
+    public static final int FT_LOAD_FORCE_AUTOHINT = 1 << 5;
+    public static final int FT_LOAD_NO_AUTOHINT    = 1 << 15;
+    public static final int FT_LOAD_TARGET_NORMAL  = FT_RENDER_MODE_NORMAL << 16;
+    public static final int FT_LOAD_TARGET_LIGHT   = FT_RENDER_MODE_LIGHT  << 16;
+    public static final int FT_LOAD_TARGET_MONO    = FT_RENDER_MODE_MONO   << 16;
+    public static final int FT_LOAD_TARGET_LCD     = FT_RENDER_MODE_LCD    << 16;
+    public static final int FT_LOAD_TARGET_LCD_V   = FT_RENDER_MODE_LCD_V  << 16;
     
     public static final int FT_GLYPH_FORMAT_BITMAP = FT2Helper.FT_IMAGE_TAG('b', 'i', 't', 's');
 
