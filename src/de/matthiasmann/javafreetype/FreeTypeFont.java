@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2010, Matthias Mann
+ * Copyright (c) 2008-2011, Matthias Mann
  *
  * All rights reserved.
  *
@@ -304,6 +304,15 @@ public class FreeTypeFont implements Closeable {
             return false;
         }
         return FT2Helper.copyGlyphToByteBuffer(bitmap, dst, stride);
+    }
+
+    public boolean copyGlyphToByteArray(byte[] dst, int dstOff, int stride) throws IOException {
+        ensureGlyphLoaded();
+        FT_Bitmap bitmap = face.glyph.bitmap;
+        if(bitmap.buffer == null) {
+            return false;
+        }
+        return FT2Helper.copyGlyphToByteArray(bitmap, dst, dstOff, stride);
     }
 
     public boolean copyGlyphToByteBufferColor(ByteBuffer dst, int stride, byte[] bgColor, byte[] fgColor) throws IOException {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2010, Matthias Mann
+ * Copyright (c) 2008-2011, Matthias Mann
  *
  * All rights reserved.
  *
@@ -240,6 +240,19 @@ class FT2Helper {
             bb.clear().position(bbOff).limit(bbOff + bitmap.width);
             dst.position(dstOff);
             dst.put(bb);
+        }
+
+        return true;
+    }
+    
+    static boolean copyGlyphToByteArray(FT_Bitmap bitmap, byte[] dst, int dstOff, int stride) {
+        ByteBuffer bb = bitmap.buffer.getByteBuffer(0, Math.abs(bitmap.pitch) * bitmap.rows);
+        int bbOff = (bitmap.pitch < 0) ? (-bitmap.pitch * (bitmap.rows-1)) : 0;
+        bb.clear();
+
+        for(int r=0 ; r<bitmap.rows ; r++,bbOff+=bitmap.pitch,dstOff+=stride) {
+            bb.position(bbOff);
+            bb.get(dst, dstOff, bitmap.width);
         }
 
         return true;
