@@ -115,9 +115,7 @@ public class FreeTypeFont implements Closeable {
      */
     public Size createNewSize() throws IOException {
         ensureOpen();
-        FT_Size size = new FT_Size();
-        checkReturnCode(INSTANCE.FT_New_Size(face.getPointer(), size));
-        return new Size(size);
+        return new Size(FT2Helper.FT_New_Size(face.getPointer()));
     }
     
     public void setCharSize(float width, float height, int horizontalResolution, int verticalResolution) throws IOException {

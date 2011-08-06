@@ -148,6 +148,12 @@ class FT2Helper {
                 new NativeLong(buffer.remaining()), new NativeLong(face_index), pp));
         return new FT_Face(pp.getValue());
     }
+    
+    static FT_Size FT_New_Size(Pointer face) throws FreeTypeException {
+        PointerByReference pp = new PointerByReference();
+        checkReturnCode(INSTANCE.FT_New_Size(face, pp));
+        return new FT_Size(pp.getValue());
+    }
 
     static int FT_IMAGE_TAG(int x1, int x2, int x3, int x4) {
         return (x1 << 24) | (x2 << 16) | (x3 << 8) | x4;
