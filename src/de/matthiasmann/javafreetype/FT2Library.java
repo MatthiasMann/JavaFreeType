@@ -258,6 +258,14 @@ public interface FT2Library extends Library {
     public static final int FT_LOAD_TARGET_LCD     = FT_RENDER_MODE_LCD    << 16;
     public static final int FT_LOAD_TARGET_LCD_V   = FT_RENDER_MODE_LCD_V  << 16;
     
+    public static final int FT_PIXEL_MODE_NONE  = 0;
+    public static final int FT_PIXEL_MODE_MONO  = 1;
+    public static final int FT_PIXEL_MODE_GRAY  = 2;
+    public static final int FT_PIXEL_MODE_GRAY2 = 3;
+    public static final int FT_PIXEL_MODE_GRAY4 = 4;
+    public static final int FT_PIXEL_MODE_LCD   = 5;
+    public static final int FT_PIXEL_MODE_LCD_V = 6;
+    
     public static final int FT_GLYPH_FORMAT_BITMAP = FT2Helper.FT_IMAGE_TAG('b', 'i', 't', 's');
 
     public static final int FT_TRUETYPE_ENGINE_TYPE_NONE       = 0;

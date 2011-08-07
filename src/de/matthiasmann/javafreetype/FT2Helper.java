@@ -228,13 +228,31 @@ class FT2Helper {
 
         int colorValue = (color == null ? Color.WHITE : color).getRGB() & 0xFFFFFF;
 
-        for(int r=0 ; r<bitmap.rows ; r++,bbOff+=bitmap.pitch,dataOff+=stride) {
-            for(int c=0 ; c<bitmap.width ; c++) {
-                data[dataOff + c] = colorValue | (bb.get(bbOff + c) << 24);
-            }
+        switch(bitmap.pixel_mode) {
+            case FT_PIXEL_MODE_GRAY:
+                for(int r=0 ; r<bitmap.rows ; r++,bbOff+=bitmap.pitch,dataOff+=stride) {
+                    for(int c=0 ; c<bitmap.width ; c++) {
+                        data[dataOff + c] = colorValue | (bb.get(bbOff + c) << 24);
+                    }
+                }
+                return true;
+                
+            case FT_PIXEL_MODE_MONO:
+                for(int r=0 ; r<bitmap.rows ; r++,bbOff+=bitmap.pitch,dataOff+=stride) {
+                    for(int c=0 ; c<bitmap.width ;) {
+                        int value = bb.get(bbOff + c/8);
+                        int cnt = Math.min(bitmap.width - c, 8);
+                        while(cnt-- > 0) {
+                            data[dataOff + c++] = colorValue | ((value & 128) << (24-7))*0xFF;
+                            value <<= 1;
+                        }
+                    }
+                }
+                return true;
+                
+            default:
+                return false;
         }
-
-        return true;
     }
 
     static boolean copyGlyphToByteBuffer(FT_Bitmap bitmap, ByteBuffer dst, int stride) {
@@ -256,12 +274,31 @@ class FT2Helper {
         int bbOff = (bitmap.pitch < 0) ? (-bitmap.pitch * (bitmap.rows-1)) : 0;
         bb.clear();
 
-        for(int r=0 ; r<bitmap.rows ; r++,bbOff+=bitmap.pitch,dstOff+=stride) {
-            bb.position(bbOff);
-            bb.get(dst, dstOff, bitmap.width);
+        switch(bitmap.pixel_mode) {
+            case FT_PIXEL_MODE_GRAY:
+                for(int r=0 ; r<bitmap.rows ; r++,bbOff+=bitmap.pitch,dstOff+=stride) {
+                    bb.position(bbOff);
+                    bb.get(dst, dstOff, bitmap.width);
+                }
+                return true;
+                
+            case FT_PIXEL_MODE_MONO:
+                for(int r=0 ; r<bitmap.rows ; r++,bbOff+=bitmap.pitch,dstOff+=stride) {
+                    bb.position(bbOff);
+                    for(int c=0 ; c<bitmap.width ;) {
+                        int value = bb.get(bbOff + c/8);
+                        int cnt = Math.min(bitmap.width - c, 8);
+                        while(cnt-- > 0) {
+                            dst[dstOff + c++] = (byte)(((value & 128) >> 7)*0xFF);
+                            value <<= 1;
+                        }
+                    }
+                }
+                return true;
+                
+            default:
+                return false;
         }
-
-        return true;
     }
 
     static boolean copyGlyphToByteBuffer(FT_Bitmap bitmap, ByteBuffer dst, int stride, short[] colors) {
