@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2011, Matthias Mann
+ * Copyright (c) 2008-2012, Matthias Mann
  *
  * All rights reserved.
  *
@@ -149,10 +149,10 @@ class FT2Helper {
         return new FT_Face(pp.getValue());
     }
     
-    static FT_Size FT_New_Size(Pointer face) throws FreeTypeException {
+    static Pointer FT_New_Size(Pointer face) throws FreeTypeException {
         PointerByReference pp = new PointerByReference();
         checkReturnCode(INSTANCE.FT_New_Size(face, pp));
-        return new FT_Size(pp.getValue());
+        return pp.getValue();
     }
 
     static int FT_IMAGE_TAG(int x1, int x2, int x3, int x4) {

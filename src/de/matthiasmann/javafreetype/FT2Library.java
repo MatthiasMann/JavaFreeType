@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2010, Matthias Mann
+ * Copyright (c) 2008-2012, Matthias Mann
  *
  * All rights reserved.
  *
@@ -104,12 +104,6 @@ public interface FT2Library extends Library {
 
     public static class FT_Size extends Structure {
         public static class ByReference extends FT_Size implements Structure.ByReference {}
-        
-        public FT_Size() {}
-        public FT_Size(Pointer p) {
-            super(p);
-            read();
-        }
         
         public FT_Face.ByReference face;      /* parent face object              */
         public FT_Generic          generic;   /* generic pointer for client uses */
@@ -282,7 +276,7 @@ public interface FT2Library extends Library {
     int FT_Done_Face(Pointer face);
 
     int FT_New_Size(Pointer face, PointerByReference size);
-    int FT_Activate_Size(FT_Size size);
+    int FT_Activate_Size(Pointer size);
     
     int FT_Set_Char_Size(Pointer face, int char_width, int char_height, int horz_resolution, int vert_resolution);
     int FT_Set_Pixel_Sizes(Pointer face, int pixel_width, int pixel_height);

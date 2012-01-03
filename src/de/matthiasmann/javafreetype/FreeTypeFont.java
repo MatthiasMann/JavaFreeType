@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2011, Matthias Mann
+ * Copyright (c) 2008-2012, Matthias Mann
  *
  * All rights reserved.
  *
@@ -72,7 +72,7 @@ public class FreeTypeFont implements Closeable {
         this.fontBuffer = file;
         this.library = library;
         this.face = FT_New_Memory_Face(library, file, 0);
-        this.initialSize = new Size(face.size);
+        this.initialSize = new Size(face.size.getPointer());
         this.activeSize = initialSize;
     }
 
@@ -159,6 +159,11 @@ public class FreeTypeFont implements Closeable {
         ensureOpen();
         return -roundMaybeScaleY(face.bbox.yMin);
     }
+    
+    public int getMaxWidth() throws IOException {
+        ensureOpen();
+        return roundMaybeScaleX(face.bbox.xMax) - roundMaybeScaleX(face.bbox.xMin) + 1;
+    }
 
     public int getLineHeight() throws IOException {
         ensureOpen();
@@ -206,6 +211,11 @@ public class FreeTypeFont implements Closeable {
      */
     public static boolean isAvailable() {
         return FT2Helper.isAvailable();
+    }
+    
+    public int getNumGlyphs() throws IOException {
+        ensureOpen();
+        return face.num_glyphs.intValue();
     }
 
     public FreeTypeCodePointIterator iterateCodePoints() throws IOException {
@@ -369,6 +379,10 @@ public class FreeTypeFont implements Closeable {
         return new FreeTypeFont(FT_Init_FreeType(), fontBuffer);
     }
 
+    public static ByteBuffer toByteBuffer(InputStream is) throws IOException {
+        return FT2Helper.inputStreamToByteBuffer(is);
+    }
+    
     private FreeTypeGlyphInfo makeGlyphInfo() {
         face.glyph.read();
         return new FreeTypeGlyphInfo(face.glyph);
@@ -381,6 +395,17 @@ public class FreeTypeFont implements Closeable {
     private int roundMaybeScaleY(long value) {
         if(face.isScalable()) {
             value = FT_FixMul(value, face.size.metrics.y_scale.longValue());
+        }
+        return round26_6(value);
+    }
+
+    private int roundMaybeScaleX(NativeLong value) {
+        return roundMaybeScaleX(value.longValue());
+    }
+    
+    private int roundMaybeScaleX(long value) {
+        if(face.isScalable()) {
+            value = FT_FixMul(value, face.size.metrics.x_scale.longValue());
         }
         return round26_6(value);
     }
@@ -418,9 +443,9 @@ public class FreeTypeFont implements Closeable {
     }
     
     public final class Size {
-        final FT_Size size;
+        final Pointer size;
 
-        Size(FT_Size size) {
+        Size(Pointer size) {
             this.size = size;
         }
         
